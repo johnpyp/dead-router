@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  dead-router:
+    build:
+      context: .
+    environment:
+      RUST_ENV: docker
+      DISCORD_OWNER_ID: ${DISCORD_OWNER_ID}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      CHECK_INTERVAL: 30000
+    dns: 1.1.1.1
+    tty: true
+    init: true
+    restart: unless-stopped
