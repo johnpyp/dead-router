@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use humantime::format_duration;
 use log::{error, info};
 use reqwest::Client;
-use tokio::time::{interval, sleep, Duration};
+use tokio::time::{self, sleep, Duration};
 
 use crate::discord_alert::DiscordAlerter;
 
@@ -23,13 +23,18 @@ impl Checker {
     pub async fn run_loop(&self) {
         let period = Duration::from_millis(self.interval_ms);
 
-        let mut interval = interval(period);
+        let mut interval = time::interval(period);
+        let mut failing_interval = time::interval(Duration::from_millis(1000));
 
         let mut check_state = CheckState::Up;
 
         sleep(Duration::from_secs(5)).await;
         loop {
-            interval.tick().await;
+            if let CheckState::Up = check_state {
+                interval.tick().await;
+            } else {
+                failing_interval.tick().await;
+            }
             info!("Checking {} urls...", &self.urls.len());
             let mut failing_urls = vec![];
             for url in &self.urls {
